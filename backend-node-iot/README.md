@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Node Auth Sample (Express + Knex + SQLite/MySQL)
 
 Backend mínimo con registro, login (JWT) y perfil.
@@ -50,3 +51,6 @@ Backend mínimo con registro, login (JWT) y perfil.
 - La contraseña se guarda con `bcryptjs` (hash).
 - `JWT` dura `7d` (ajustable con `JWT_EXPIRES_IN`).
 - `knexfile.js` detecta `DB_CLIENT` de `.env`.
+=======
+# Backend-node-iot
+>>>>>>> origin/main
