@@ -2,6 +2,7 @@ import { Router } from 'express';
 import db from '../db/knex.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { sendRecoveryCodeEmail } from '../services/emailService.js';
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_change_me';
@@ -75,40 +76,48 @@ router.post('/register', async (req, res) => {
  * 3. Guardarlo en password_reset_codes (used = false).
  * 4. (Opcional) Enviar por correo -> aquí lo simulamos.
  */
-router.post('/forgot-password', async (req, res) => {
-	try {
-		const { email } = req.body;
+router.post("/forgot-password", async (req, res) => {
+  try {
+      const { email } = req.body;
 
-		if (!email) {
-			return res.status(400).json({ error: 'Debe enviar el email' });
-		}
+      if (!email) {
+          return res.status(400).json({ error: "Debe enviar el email" });
+      }
 
-		const user = await db('users').where({ email }).first();
-		if (!user) {
-			// Por seguridad, podemos devolver mensaje genérico
-			return res.status(200).json({
-				message: 'Si el correo existe, se ha enviado un código de recuperación',
-			});
-		}
+      const user = await db("users").where({ email }).first();
+      if (!user) {
+          // Respuesta genérica por seguridad
+          return res.status(200).json({
+              message:
+                  "Si el correo existe, se ha enviado un código de recuperación",
+          });
+      }
 
-		const code = generateCode();
+      const code = generateCode();
 
-		await db('password_reset_codes').insert({
-			user_id: user.id,
-			code,
-			used: false,
-		});
+      // Guardar el código en la BD
+      await db("password_reset_codes").insert({
+          user_id: user.id,
+          code,
+          used: false,
+      });
 
-		// Aquí se podría enviar un correo real.
-		// Por ahora, lo devolvemos sólo para pruebas en clase.
-		return res.status(200).json({
-			message: 'Código de recuperación generado (simulado)',
-			code, // <-- Quitar en producción, dejar sólo para pruebas.
-		});
-	} catch (error) {
-		console.error('Error en /forgot-password:', error);
-		return res.status(500).json({ error: 'Error interno del servidor' });
-	}
+      // Enviar el correo con el código
+      await sendRecoveryCodeEmail(email, code);
+
+      // Para producción real, NO devolveríamos el código en la respuesta.
+      // Para pruebas con estudiantes puedes decidir:
+      // - No devolverlo (más realista)
+      // - Devolverlo (más fácil para testear en clase)
+      return res.status(200).json({
+          message:
+              "Si el correo existe, se ha enviado un código de recuperación",
+          // code,  // opcional, sólo para pruebas
+      });
+  } catch (error) {
+      console.error("Error en /forgot-password:", error);
+      return res.status(500).json({ error: "Error interno del servidor" });
+  }
 });
 
 /**
