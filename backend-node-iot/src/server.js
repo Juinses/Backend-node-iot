@@ -5,6 +5,7 @@ import authRoutes from './routes/auth.js';
 import profileRoutes from './routes/profile.js';
 import iotRoutes from './routes/iot.js';
 import auth from './middleware/auth.js';
+import iotLedRoutes from './routes/iot_led.js'
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -19,6 +20,7 @@ app.get('/', (req, res) => {
 app.use('/auth', authRoutes);
 app.use('/', profileRoutes);
 app.use('/iot', iotRoutes);
+app.use('/api/leds', iotLedRoutes)
 
 // Example protected route
 app.get('/protected-ping', auth, (req, res) => {
@@ -33,3 +35,4 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
 	console.log(`Server running on http://localhost:${PORT}`);
 });
+
